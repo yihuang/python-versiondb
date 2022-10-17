@@ -1,0 +1,61 @@
+{
+  "nodes": {
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1666021659,
+        "narHash": "sha256-7C3hGzoAD7oLll8gFGyl94fUMJGGQHsPHpHr8CzQGJQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5637a2f5a37e6625d41cbb879f8d0b2434fb6244",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "rocksdb-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1648583659,
+        "narHash": "sha256-m6twgWcPTVD6uzcLuskKX6voeq7qAF3rozfLqSakI7s=",
+        "owner": "facebook",
+        "repo": "rocksdb",
+        "rev": "da11a59034584ea2d0911268b8136e5249d6b692",
+        "type": "github"
+      },
+      "original": {
+        "owner": "facebook",
+        "ref": "v6.29.5",
+        "repo": "rocksdb",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs",
+        "rocksdb-src": "rocksdb-src"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

@@ -9,6 +9,34 @@
   };
 
   outputs = { self, nixpkgs, flake-utils, rocksdb-src }:
+    let
+      package-env = { poetry2nix, lib, rocksdb }:
+        poetry2nix.mkPoetryEnv {
+          projectDir = ./.;
+          overrides = poetry2nix.overrides.withDefaults (lib.composeManyExtensions [
+            (self: super:
+              let
+                buildSystems = {
+                  rocksdb = [ "setuptools" "cython" "pkgconfig" ];
+                  pyroaring = [ "setuptools" ];
+                  roaring64 = [ "poetry" ];
+                };
+              in
+              lib.mapAttrs
+                (attr: systems: super.${attr}.overridePythonAttrs
+                  (old: {
+                    nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ map (a: self.${a}) systems;
+                  }))
+                buildSystems
+            )
+            (self: super: {
+              rocksdb = super.rocksdb.overridePythonAttrs (old: {
+                buildInputs = (old.buildInputs or [ ]) ++ [ rocksdb ];
+              });
+            })
+          ]);
+        };
+    in
     (flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -22,16 +50,8 @@
         in
         rec {
           packages = {
-            dev-env = pkgs.poetry2nix.mkPoetryEnv {
-              projectDir = ./.;
-            };
+            dev-env = pkgs.callPackage package-env { };
           };
-          apps = {
-            cronosd = mkApp packages.cronosd;
-            cronosd-testnet = mkApp packages.cronosd-testnet;
-          };
-          defaultPackage = packages.cronosd;
-          defaultApp = apps.cronosd;
           devShell = pkgs.mkShell {
             buildInputs = [ packages.dev-env ];
           };
