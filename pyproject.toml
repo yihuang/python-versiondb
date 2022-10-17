@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "versiondb"
+version = "0.1.0"
+description = ""
+authors = ["HuangYi <huang@crypto.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+roaring64 = { git = "https://github.com/yihuang/python-roaring64.git", branch = "main" }
+rocksdb = { git = "https://github.com/HathorNetwork/python-rocksdb.git", branch = "master" }
+lmdb = "^1.3.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
