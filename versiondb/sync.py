@@ -47,14 +47,3 @@ def sync_local(path, versiondb):
         items = [item.to_kvpair() for item in items]
         versiondb.put(version, items)
         version += 1
-
-
-if __name__ == "__main__":
-    import sys
-    from pathlib import Path
-
-    dbpath = Path(sys.argv[1])
-    filepath = Path(sys.argv[2])
-    from .versiondb import VersionDB
-
-    sync_local(filepath, VersionDB.open_rocksdb(dbpath))
