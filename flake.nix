@@ -20,6 +20,7 @@
                   rocksdb = [ "setuptools" "cython" "pkgconfig" ];
                   pyroaring = [ "setuptools" ];
                   roaring64 = [ "poetry" ];
+                  cprotobuf = [ "setuptools" ];
                 };
               in
               lib.mapAttrs
