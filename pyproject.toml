@@ -11,7 +11,7 @@ rocksdb = { git = "https://github.com/HathorNetwork/python-rocksdb.git", branch 
 lmdb = "^1.3.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.1.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
