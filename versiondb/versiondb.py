@@ -5,6 +5,8 @@ import rocksdb
 from cprotobuf import decode_primitive, encode_primitive
 from roaring64 import BitMap64
 
+from .iterator import VersionDBIter
+
 LATEST_VERSION_KEY = b"s/latest"
 
 
@@ -121,6 +123,22 @@ class VersionDB:
     def latest_version(self) -> Optional[int]:
         v = self.plain.get(LATEST_VERSION_KEY)
         return decode_stdint64(v) if v else None
+
+    def iterator(
+        self,
+        version: Optional[int],
+        start: Optional[bytes] = None,
+        reverse: bool = False,
+    ):
+        # TODO check latest version proactively if version is not None
+        if version is None:
+            it = self.plain.iteritems()
+            if start is None:
+                it.seek_to_first()
+            else:
+                it.seek(start)
+            return it
+        return VersionDBIter(self, version, start, reverse)
 
 
 def encode_stdint64(n):
