@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING
 
 from roaring64 import BitMap64
 
+from .utils import (changeset_key, full_key, incr_bytes, prefix_iteritems,
+                    seek_bitmap, store_key_prefix)
+
 if TYPE_CHECKING:
     from .versiondb import VersionDB
-
-STORE_KEY_PREFIX = b"s/k:"
 
 
 class VersionDBIter:
@@ -28,21 +29,48 @@ class VersionDBIter:
     pk: bytes
     pv: bytes
 
-    def __init__(self, store: VersionDB, version: int, start: bytes, reverse: bool):
+    def __init__(
+        self,
+        store: VersionDB,
+        version: int,
+        store_key: str,
+        start: bytes,
+        reverse: bool,
+    ):
         self.store = store
         self.version = version
+        self.store_key = store_key
         self.start = start
         self.reverse = reverse
 
-        self.iter_plain = store.plain.iteritems()
-        self.iter_history = store.history.iteritems()
+        iter_plain = store.plain.iteritems()
+        iter_history = store.history.iteritems()
+        if reverse:
+            iter_plain = reversed(iter_plain)
+            iter_history = reversed(iter_history)
         self.status = 0
-        if not start:
-            self.iter_plain.seek_to_first()
-            self.iter_history.seek_to_first()
+
+        prefix = store_key_prefix(store_key)
+        if start:
+            full_start = prefix + start
+            iter_plain.seek(full_start)
+            iter_history.seek(full_start)
+            if reverse:
+                if iter_plain.get()[0] > full_start:
+                    next(iter_plain)
+                if iter_history.get()[0] > full_start:
+                    next(iter_history)
         else:
-            self.iter_plain.seek(start)
-            self.iter_history.seek(start)
+            if not reverse:
+                iter_plain.seek(prefix)
+                iter_history.seek(prefix)
+            else:
+                end = incr_bytes(prefix)
+                iter_plain.seek_for_prev(end)
+                iter_history.seek_for_prev(end)
+
+        self.iter_plain = prefix_iteritems(iter_plain, prefix, reverse)
+        self.iter_history = prefix_iteritems(iter_history, prefix, reverse)
 
     def __iter__(self):
         return self
@@ -60,8 +88,6 @@ class VersionDBIter:
         self.status = compare_key(self.pk, self.hk, self.reverse)
 
     def __next__(self):
-        from .versiondb import changeset_key, seek_bitmap
-
         while True:
             self._advance()
             if self.status == -2:
@@ -73,7 +99,9 @@ class VersionDBIter:
                 found = seek_bitmap(bm, self.version)
                 if found is None:
                     return self.pk, self.pv
-                v = self.store.changeset.get(changeset_key(found, self.hk))
+                v = self.store.changeset.get(
+                    changeset_key(found, full_key(self.store_key, self.hk))
+                )
                 if not v:
                     # deleted, keep advancing
                     continue
@@ -88,13 +116,13 @@ class VersionDBIter:
                 if found is None:
                     # deleted, keep advancing
                     continue
-                v = self.store.changeset.get(changeset_key(found, self.hk))
+                v = self.store.changeset.get(
+                    changeset_key(found, full_key(self.store_key, self.hk))
+                )
                 if not v:
                     # deleted, keep advancing
                     continue
                 return self.hk, v
-            else:
-                raise NotImplementedError(f"invalid status {self.status}")
 
 
 def compare_key(k1, k2, reverse: bool):
@@ -126,9 +154,6 @@ def compare_key(k1, k2, reverse: bool):
 
 def incr_iter(it):
     try:
-        k, v = next(it)
-        if not k.startswith(STORE_KEY_PREFIX):
-            return None, None
-        return k, v
+        return next(it)
     except StopIteration:
         return None, None
