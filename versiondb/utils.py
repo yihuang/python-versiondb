@@ -75,10 +75,15 @@ def incr_bytes(prefix: bytes) -> bytes:
     return bytes(bz)
 
 
-def prefix_iteritems(it: Iterator, prefix: bytes, reverse: bool = False):
+def prefix_iteritems(
+    it: Iterator, prefix: bytes, reverse: bool = False, end: Optional[bytes] = None
+):
     if not reverse:
-        end = incr_bytes(prefix)
+        end = incr_bytes(prefix) if not end else prefix + end
         it = itertools.takewhile(lambda t: t[0] < end, it)
     else:
-        it = itertools.takewhile(lambda t: t[0] >= prefix, it)
+        if end:
+            it = itertools.takewhile(lambda t: t[0] > prefix + end, it)
+        else:
+            it = itertools.takewhile(lambda t: t[0] >= prefix, it)
     return ((k.removeprefix(prefix), v) for k, v in it)
