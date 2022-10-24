@@ -59,7 +59,7 @@ def test_iterator(testdb):
         ],
     ]
     for i, exp in enumerate(exp_evm):
-        # assert exp == list(testdb.iterator(i, "evm")), f"block-{i}"
+        assert exp == list(testdb.iterator(i, "evm")), f"block-{i}"
         assert list(reversed(exp)) == list(
             testdb.iterator(i, "evm", reverse=True)
         ), f"block-{i}-reverse"
