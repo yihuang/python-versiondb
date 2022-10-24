@@ -5,8 +5,8 @@ import rocksdb
 
 from .iterator import VersionDBIter
 from .utils import (KVPair, changeset_key, decode_stdint64, encode_stdint64,
-                    full_key, get_bitmap, prefix_iteritems, seek_bitmap,
-                    set_bitmap, store_key_prefix)
+                    full_key, get_bitmap, incr_bytes, prefix_iteritems,
+                    seek_bitmap, set_bitmap, store_key_prefix)
 
 LATEST_VERSION_KEY = b"s/latest"
 
@@ -131,6 +131,17 @@ class VersionDB:
         if version is None:
             it = self.plain.iteritems()
             prefix = store_key_prefix(store_key)
-            it.seek(prefix + (start or b""))
+            if reverse:
+                it = reversed(it)
+            if start:
+                full_start = prefix + start
+                it.seek(full_start)
+                if reverse and it.get()[0] > full_start:
+                    next(it)
+            else:
+                if not reverse:
+                    it.seek(prefix)
+                else:
+                    it.seek_for_prev(incr_bytes(prefix))
             return prefix_iteritems(it, prefix, reverse)
         return VersionDBIter(self, version, store_key, start, reverse)
