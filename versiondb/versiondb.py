@@ -125,9 +125,6 @@ class VersionDB:
         start: Optional[bytes] = None,
         reverse: bool = False,
     ):
-        if version is not None and version == self.latest_version():
-            version = None
-
         if version is None:
             it = self.plain.iteritems()
             prefix = store_key_prefix(store_key)
