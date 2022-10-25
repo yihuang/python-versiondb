@@ -64,6 +64,9 @@ def test_iterator(testdb):
             testdb.iterator(i, "evm", reverse=True)
         ), f"block-{i}-reverse"
     assert exp_evm[-1] == list(testdb.iterator(None, "evm"))
+    assert list(reversed(exp_evm[-1])) == list(
+        testdb.iterator(None, "evm", reverse=True)
+    )
 
     # with start parameter
     assert [] == list(testdb.iterator(2, "evm", start=b"\xff"))
@@ -76,7 +79,17 @@ def test_iterator(testdb):
         testdb.iterator(2, "evm", start=b"modify-in-block2", reverse=True)
     )
 
-    # delete the last key
+    assert exp_evm[-1][2:] == list(
+        testdb.iterator(None, "evm", start=b"modify-in-block2")
+    )
+    assert list(reversed(exp_evm[-1][:3])) == list(
+        testdb.iterator(None, "evm", start=b"modify-in-block2", reverse=True)
+    )
+    assert list(reversed(exp_evm[-1][:2])) == list(
+        testdb.iterator(None, "evm", start=b"modify-in-block1", reverse=True)
+    )
+
+    # delete the last key, cover some edge cases
     testdb.put(
         len(exp_evm),
         [
@@ -85,3 +98,4 @@ def test_iterator(testdb):
     )
     i = len(exp_evm)
     assert exp_evm[-1][:-1] == list(testdb.iterator(i, "evm")), f"block-{i}"
+    assert exp_evm[-1] == list(testdb.iterator(i - 1, "evm")), f"block-{i-1}"
